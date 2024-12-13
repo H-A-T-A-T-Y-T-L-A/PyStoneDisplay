@@ -25,13 +25,11 @@ class StoneLabel(StoneWidget):
         self.push_command(self.set_text, text = self._text)
 
     @property
-    def value(self) -> float:
+    def value(self) -> Union[float, int]:
         return self._value
 
     @value.setter
     def value(self, value:Union[float, int]) -> None:
-        if isinstance(value, int):
-            value = float(value)
         self._value = value
         self._text = ''
         self.push_command(self.set_value, value = self._value, format = self._format)
