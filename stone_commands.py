@@ -1,4 +1,4 @@
-from typing import Iterable, MutableMapping, Optional, Union, TypeVar, Type, TYPE_CHECKING
+from typing import MutableMapping, Optional, Union, Type, TYPE_CHECKING
 import json
 
 if TYPE_CHECKING:
@@ -24,26 +24,68 @@ class StoneCommandType:
         self.cmd_type = cmd_type
 
     def new(self) -> 'StoneCommand':
+        """
+        Generate new command object instance. Values can then be inserted into the command
+
+        Returns:
+            StoneCommand: Instance of a command object with its type information filled in, without values.
+        """
         return StoneCommand(self.cmd_code, self.cmd_type)
 
 class StoneWidgetCommandType(StoneCommandType):
+    """
+    Object describing commands to the STONE HMI display relating to specific widgets.
+    """
 
     def __init__(self, cmd_code: str, widget_type: Type['StoneWidget']) -> None:
+        """
+        Initialize a widget STONE command type.
+
+        Args:
+            cmd_code (str): Specific command code according to STONE docs.
+            widget_type (Type[StoneWidget]): Type of widget that this command type is related to.
+                Not necessarily the assigned widget instance.
+        """
         super().__init__(cmd_code, widget_type.type_name)
         self.widget_type = widget_type
         self.widget:Optional['StoneWidget'] = None
 
     def for_widget(self, widget:'StoneWidget') -> 'StoneWidgetCommandType':
+        """
+        Get a copy of the command type object, with a STONE widget assigned to it.
+
+        Args:
+            widget (StoneWidget): Reference to the widget which is to be assigned to the command.
+
+        Returns:
+            StoneWidgetCommandType: A new instenace of the command type, containing the same command type info,
+                but also a reference to the widget its assigned to.
+        """
         result = self.copy()
         result.widget = widget
         return result
 
     def copy(self) -> 'StoneWidgetCommandType':
+        """
+        Create a copy of the StoneWidgetCommandType.
+
+        Returns:
+            StoneWidgetCommandType: A new copy of the original command type, with all the same contents.
+        """
         result = StoneWidgetCommandType(self.cmd_code, self.widget_type)
         result.widget = self.widget
         return result
 
     def new(self) -> 'StoneCommand':
+        """
+        Generate new command object instance. Values can then be inserted into the command
+
+        Raises:
+            ValueError: In case a widget reference, which is allways required for widget commands, was not assigned fist.
+
+        Returns:
+            StoneCommand: A new command object instance.
+        """
         if self.widget is None:
             raise ValueError('Cannot create a Stone widget command if the widget reference is not set')
         return StoneWidgetCommand(self.cmd_code, self.cmd_type, self.widget)
