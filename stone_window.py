@@ -1,4 +1,3 @@
-from typing import Optional
 from . import StoneWidget, StoneCommandType, StoneWidgetCommandType
 
 class StoneWindow(StoneWidget):
