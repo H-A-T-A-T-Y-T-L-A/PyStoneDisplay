@@ -100,18 +100,15 @@ class StoneCommand:
         self.cmd_items = {}
 
     def __setitem__(self, key:str, value:CommandValue) -> None:
-        key = f'"{key}"'
         if isinstance(value, Enum):
             value = value.value
-        if isinstance(value, str):
-            value = f'"{value}"'
         self.cmd_items[key] = value
 
     @property
     def body(self) -> MutableMapping[str, str]:
         return {
-            '"cmd_code"':f'"{self.cmd_code}"',
-            '"type"':f'"{self.cmd_type}"',
+            'cmd_code': self.cmd_code,
+            'type': self.cmd_type,
         }
 
     @property
@@ -136,7 +133,7 @@ class StoneWidgetCommand(StoneCommand):
     def body(self) -> MutableMapping[str, str]:
         return {
             **super().body,
-            '"widget"':f'"{self.widget.instance_name}"',
+            'widget': self.widget.instance_name,
         }
 
 class StoneWidgetResponse:
