@@ -1,11 +1,11 @@
-from typing import Union
+from typing import Union, Optional
 from . import StoneWidget, StoneWidgetCommandType
 
 class StoneLabel(StoneWidget):
 
     type_name = 'label'
 
-    def __init__(self, name:str) -> None:
+    def __init__(self, name:str, parent:Optional[StoneWidget] = None) -> None:
         super().__init__(name)
 
         self._text = ''

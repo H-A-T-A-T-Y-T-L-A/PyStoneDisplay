@@ -94,7 +94,7 @@ class StoneWidgetCommandType(StoneCommandType):
 
 class StoneCommand:
 
-    def __init__(self, cmd_code:str, cmd_type:str) -> None:
+    def __init__(self, cmd_code:str, cmd_type:str = 'system') -> None:
         self.cmd_code = cmd_code
         self.cmd_type = cmd_type
         self.cmd_items = {}
@@ -140,4 +140,4 @@ class StoneWidgetCommand(StoneCommand):
         }
 
 class StoneWidgetResponse:
-    raise NotImplemented
+    raise NotImplementedError()

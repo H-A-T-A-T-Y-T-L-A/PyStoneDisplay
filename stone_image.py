@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import Enum
 from . import StoneWidget, StoneWidgetCommandType
 
@@ -19,8 +20,8 @@ class StoneImage(StoneWidget):
         TILE_VERTICAL = 10
         TILE_VERTICAL_REVERSED = 11
 
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
+    def __init__(self, name: str, parent:Optional[StoneWidget] = None) -> None:
+        super().__init__(name, parent)
 
         self._image = ''
         self.set_image = StoneWidgetCommandType('set_image', StoneImage)

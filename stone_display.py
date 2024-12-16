@@ -12,8 +12,10 @@ if TYPE_CHECKING:
 class StoneDisplay:
 
     def __init__(self) -> None:
+        from . import StoneWindow
         # children
-        self.windows:MutableSequence['StoneWindow'] = []
+        self.home_window = StoneWindow('home_page')
+        self.windows:MutableSequence[StoneWindow] = [ self.home_window ]
         # serial port config
         self.port = ''
         self.baudrate = 9600
@@ -24,12 +26,12 @@ class StoneDisplay:
 
     def config_serial(
         self,
-        port:Optional[str],
-        baudrate:Optional[int],
-        bytesize:Optional[int],
-        parity:Optional[str],
-        stopbits:Optional[int],
-        serial_timeout:Optional[float],
+        port:Optional[str] = None,
+        baudrate:Optional[int] = None,
+        bytesize:Optional[int] = None,
+        parity:Optional[str] = None,
+        stopbits:Optional[int] = None,
+        serial_timeout:Optional[float] = None,
     ):
         if port is not None: self.port = port
         if baudrate is not None: self.baudrate = baudrate
@@ -50,6 +52,11 @@ class StoneDisplay:
         for widget in self.all_widgets:
             while widget.has_commands:
                 yield widget.pop_command()
+
+    def add_window(self, name:str) -> 'StoneWindow':
+        from . import StoneWindow
+        new_window = StoneWindow(name)
+        return new_window
 
     def write_commands(self) -> None:
         with serial.Serial(
