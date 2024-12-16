@@ -140,4 +140,4 @@ class StoneWidgetCommand(StoneCommand):
         }
 
 class StoneWidgetResponse:
-    raise NotImplementedError()
+    ...

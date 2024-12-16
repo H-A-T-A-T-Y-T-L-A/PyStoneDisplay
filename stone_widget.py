@@ -19,6 +19,7 @@ class StoneWidget:
         Args:
             name (str): The name of the widget instance, is used in this widgets commands so must match the name in the display.
         """
+        from . import StoneWidgetCommandType
 
         # name of this specific widget instance
         self.instance_name = name
