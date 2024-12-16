@@ -1,11 +1,13 @@
-from typing import MutableMapping, Optional, Union, Type, TYPE_CHECKING
+from typing import Iterable, MutableMapping, Optional, Union, Type, TYPE_CHECKING
+from enum import Enum
 import json
 
 if TYPE_CHECKING:
     from . import StoneWidget
 
 # types of values allowed in a command
-CommandValue = Union[str, int, float, bool]
+CommandPrimitiveValue = Union[str, int, float, bool, Enum]
+CommandValue = Union[CommandPrimitiveValue, Iterable[CommandPrimitiveValue]]
 
 class StoneCommandType:
     """
@@ -99,6 +101,8 @@ class StoneCommand:
 
     def __setitem__(self, key:str, value:CommandValue) -> None:
         key = f'"{key}"'
+        if isinstance(value, Enum):
+            value = value.value
         if isinstance(value, str):
             value = f'"{value}"'
         self.cmd_items[key] = value
