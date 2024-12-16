@@ -1,4 +1,4 @@
-from typing import Tuple, MutableSequence, MutableMapping, Union, TYPE_CHECKING
+from typing import Tuple, MutableSequence, MutableMapping, Union, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from . import CommandValue, StoneCommandType, StoneWidgetCommandType, StoneCommand
@@ -12,7 +12,7 @@ class StoneWidget:
     #! to be set in a subclass, used in commands to identify widget type
     type_name = 'widget'
 
-    def __init__(self, name:str) -> None:
+    def __init__(self, name:str, parent:Optional['StoneWidget'] = None) -> None:
         """
         Instantiate a new widget, with a defined name, that is used to identify it in commands.
 
@@ -39,6 +39,12 @@ class StoneWidget:
         self._y = -1
         self.set_xy = StoneWidgetCommandType('set_xy', StoneWidget)
         # self.get_xy = StoneWidgetCommandType(StoneWidget, 'get_xy')
+
+        #* hierarchy
+        self.children:MutableSequence[StoneWidget] = []
+        self.parent = parent
+        if parent:
+            parent.children.append(self)
 
     def push_command(self, command:Union['StoneCommandType', 'StoneCommand'], **kwargs:'CommandValue') -> None:
         """
@@ -67,6 +73,17 @@ class StoneWidget:
         self.command_queue[command.cmd_code] = command
 
     @property
+    def has_commands(self) -> bool:
+        return len(self.command_queue) > 0
+
+    def pop_command(self) -> 'StoneCommand':
+        if not self.has_commands:
+            raise ValueError('Cannot pop command when command queue is empty!')
+
+        first_key, *_ = self.command_queue.keys()
+        return self.command_queue.pop(first_key)
+
+    @property
     def enabled(self) -> bool:
         return self._enabled
 
@@ -92,5 +109,3 @@ class StoneWidget:
     def xy(self, value:Tuple[int, int]) -> None:
         self._x, self._y = value
         self.push_command(self.set_xy, x = self._x, y = self._y)
-
-    
