@@ -45,7 +45,10 @@ class StoneWidget:
         self.children:MutableSequence[StoneWidget] = []
         self.parent = parent
         if parent:
-            parent.children.append(self)
+            parent.add_child(self)
+
+    def add_child(self, child:'StoneWidget') -> None:
+        self.children.append(child)
 
     def push_command(self, command:Union['StoneCommandType', 'StoneCommand'], **kwargs:'CommandValue') -> None:
         """

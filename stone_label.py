@@ -6,7 +6,7 @@ class StoneLabel(StoneWidget):
     type_name = 'label'
 
     def __init__(self, name:str, parent:Optional[StoneWidget] = None) -> None:
-        super().__init__(name)
+        super().__init__(name, parent)
 
         self._text = ''
         self._value = 0.
