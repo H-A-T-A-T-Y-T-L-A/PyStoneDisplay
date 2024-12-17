@@ -9,7 +9,6 @@ from typing import (
     Type,
     TYPE_CHECKING
 )
-from functools import singledispatch
 from collections import deque
 import serial
 
@@ -82,18 +81,16 @@ class StoneDisplay:
                 packet = command.serialized.encode('ASCII')
                 ser.write(packet)
 
-    T = TypeVar('T', bound = 'StoneWidget')
-    @singledispatch
-    def __getitem__(self, key:Tuple[str, Type[T]]) -> T:
-        widget_name, widget_type = key
-        widget = self[widget_name]
-        if isinstance(widget, widget_type):
-            return widget
-        raise KeyError(f'Widget of type "{widget_type.__name__}" with name "{key}" was not found on the display')
-
-    @__getitem__.register
-    def _(self, key:str) -> 'StoneWidget':
+    def find_by_name(self, key:str) -> 'StoneWidget':
         for widget in self.all_widgets:
             if widget.instance_name == key:
                 return widget
         raise KeyError(f'Widget with name "{key}" was not found on the display')
+
+    T = TypeVar('T', bound = 'StoneWidget')
+    def widget(self, key:Tuple[str, Type[T]]) -> T:
+        widget_name, widget_type = key
+        widget = self.find_by_name(widget_name)
+        if isinstance(widget, widget_type):
+            return widget
+        raise KeyError(f'Widget of type "{widget_type.__name__}" with name "{key}" was not found on the display')
