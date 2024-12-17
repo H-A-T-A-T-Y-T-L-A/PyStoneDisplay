@@ -1,4 +1,4 @@
-from typing import Iterable, MutableMapping, Optional, Union, Type, TYPE_CHECKING
+from typing import Iterable, Tuple, Callable, MutableSequence, MutableMapping, Optional, Union, Type, TYPE_CHECKING
 from enum import Enum
 import json
 
@@ -9,6 +9,9 @@ if TYPE_CHECKING:
 CommandPrimitiveValue = Union[str, int, float, bool, Enum]
 CommandValue = Union[CommandPrimitiveValue, Iterable[CommandPrimitiveValue]]
 
+#!#########################!#
+#!         COMMAND         !#
+#!#########################!#
 class StoneCommandType:
     """
     Object describing basic commands to the STONE HMI display.
@@ -136,5 +139,79 @@ class StoneWidgetCommand(StoneCommand):
             'widget': self.widget.instance_name,
         }
 
-class StoneWidgetResponse:
-    ...
+#!##########################!#
+#!         RESPONSE         !#
+#!##########################!#
+
+class StoneResponseType:
+
+    existing_types:MutableMapping[int, 'StoneResponseType'] = {}
+
+    def __init__(
+        self,
+        cmd_code:int,
+        data_parser:Callable[[bytes], MutableMapping[str, object]],
+    ) -> None:
+        self.cmd_code = cmd_code
+        self.parser = data_parser
+
+        # register response type
+        if self.cmd_code in self.existing_types:
+            raise KeyError(f'Cannot create two response type objects with the same command code ({self.cmd_code})')
+        self.existing_types[self.cmd_code] = self
+
+    @staticmethod
+    def decode(raw:bytes) -> 'StoneResponse':
+        cmd_code = int.from_bytes(raw[0:2], 'big')
+        cmd_len = int.from_bytes(raw[2:4], 'big')
+        raw_data = raw[4:]
+        if len(raw_data) != cmd_len:
+            raise ValueError(f'True length of data ({len(raw_data)}) did not match the defined length ({cmd_len})')
+        response_type = StoneResponseType.existing_types[cmd_code]
+        return response_type.new(raw_data)
+        
+    def new(self, raw_data:bytes) -> 'StoneResponse':
+        return StoneResponse(self.cmd_code, self.parser(raw_data))
+
+class StoneWidgetResponseType(StoneResponseType):
+
+    @staticmethod
+    def parse_widget_name(raw:bytes) -> str:
+        widget_name, *_ = raw.decode('ascii').split(' ')
+        return widget_name
+
+    def __init__(
+        self,
+        cmd_code:int,
+        data_parser:Callable[[bytes], MutableMapping[str, object]],
+        widget_name_parser:Callable[[bytes], str] = parse_widget_name,
+    ) -> None:
+        super().__init__(cmd_code, data_parser)
+        self.widget_name_parser = widget_name_parser
+
+    def new(self, raw_data: bytes) -> 'StoneResponse':
+        return StoneWidgetResponse(self.cmd_code, self.parser(raw_data), self.widget_name_parser(raw_data))
+
+class StoneResponse:
+
+    def __init__(
+        self,
+        cmd_code:int,
+        cmd_data:MutableMapping[str, object],
+    ) -> None:
+        self.cmd_code = cmd_code
+        self.cmd_data = cmd_data
+
+    def __getitem__(self, key:str) -> object:
+        return self.cmd_data[key]
+
+class StoneWidgetResponse(StoneResponse):
+
+    def __init__(
+        self,
+        cmd_code:int,
+        cmd_data:MutableMapping[str, object],
+        widget_name:str,
+    ) -> None:
+        super().__init__(cmd_code, cmd_data)
+        self.widget_name = widget_name
