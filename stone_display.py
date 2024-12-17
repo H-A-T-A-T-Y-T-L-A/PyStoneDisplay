@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         StoneWidget,
         StoneWindow,
         StoneCommand,
+        StoneCommandType,
     )
 
 class StoneDisplay:
@@ -33,6 +34,10 @@ class StoneDisplay:
         self.parity = 'N'
         self.stopbits = 1
         self.serial_timeout:Optional[float] = None
+
+        self.set_buzzer = StoneCommandType('set_buzzer')
+        self._brightness = 100
+        self.set_brightness = StoneCommandType('set_brightness')
 
     def config_serial(
         self,
@@ -94,3 +99,16 @@ class StoneDisplay:
         if isinstance(widget, widget_type):
             return widget
         raise KeyError(f'Widget of type "{widget_type.__name__}" with name "{key}" was not found on the display')
+
+    def beep(self, time = 100) -> None:
+        self.home_window.push_command(self.set_buzzer, time = time)
+
+    @property
+    def brightness(self) -> int:
+        return self._brightness
+
+    @brightness.setter
+    def brightness(self, value:int) -> None:
+        if value > 100 or value < 0:
+            raise ValueError(f'Cannot set brightness level outside of interval <0, 100> (tried value {value})')
+        self.home_window.push_command(self.set_brightness, brightness = value)
