@@ -3,6 +3,7 @@ from .stone_commands import (
     StoneWidgetCommandType,
     StoneCommand,
     StoneWidgetCommand,
+    StoneResponseMatcher,
     StoneResponseType,
     StoneWidgetResponseType,
     StoneResponse,

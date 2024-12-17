@@ -1,4 +1,4 @@
-from typing import Deque, Iterable, Tuple, Callable, MutableSequence, MutableMapping, Optional, Union, Type, TYPE_CHECKING
+from typing import Deque, Iterator, Iterable, Tuple, Callable, MutableSequence, MutableMapping, Optional, Union, Type, TYPE_CHECKING
 from enum import Enum
 from collections import deque
 import json
@@ -173,6 +173,9 @@ class StoneResponseMatcher:
         if self.buffered_str.endswith(message_start):
             self.buffer.clear()
             self.buffering = True
+
+    def __iter__(self) -> Iterator[bytes]:
+        return iter(self.queue)
 
 class StoneResponseType:
 

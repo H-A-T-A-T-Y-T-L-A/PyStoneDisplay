@@ -18,6 +18,9 @@ if TYPE_CHECKING:
         StoneWindow,
         StoneCommand,
         StoneCommandType,
+        StoneResponseMatcher,
+        StoneResponse,
+        StoneWidgetResponse,
     )
 
 class StoneDisplay:
@@ -27,6 +30,7 @@ class StoneDisplay:
         # children
         self.home_window = StoneWindow('home_page')
         self.windows:MutableSequence[StoneWindow] = [ self.home_window ]
+
         # serial port config
         self.port = ''
         self.baudrate = 9600
@@ -35,6 +39,10 @@ class StoneDisplay:
         self.stopbits = 1
         self.serial_timeout:Optional[float] = None
 
+        # response handling
+        self.response_buffer = StoneResponseMatcher()
+
+        # system commands
         self.set_buzzer = StoneCommandType('set_buzzer')
         self._brightness = 100
         self.set_brightness = StoneCommandType('set_brightness')
@@ -73,18 +81,35 @@ class StoneDisplay:
         new_window = StoneWindow(name)
         return new_window
 
-    def write_commands(self) -> None:
-        with serial.Serial(
+    @property
+    def serial(self) -> serial.Serial:
+        return serial.Serial(
             self.port,
             self.baudrate,
             self.bytesize,
             self.parity,
             self.stopbits,
             self.serial_timeout,
-        ) as ser:
+        )
+
+    def write_commands(self) -> None:
+        with self.serial as ser:
             for command in self.gather_commands():
                 packet = command.serialized.encode('ASCII')
                 ser.write(packet)
+
+    def read_commands(self) -> None:
+        from . import StoneResponseType, StoneWidgetResponse
+        with self.serial as ser:
+            read_result = ser.read_all()
+            if read_result:
+                self.response_buffer.push(read_result)
+        for packet in self.response_buffer:
+            response = StoneResponseType.decode(packet)
+            if isinstance(response, StoneWidgetResponse):
+                self.find_by_name(response.widget_name).handle_response(response)
+            else:
+                self.home_window.handle_response(response)
 
     def find_by_name(self, key:str) -> 'StoneWidget':
         for widget in self.all_widgets:
@@ -93,7 +118,7 @@ class StoneDisplay:
         raise KeyError(f'Widget with name "{key}" was not found on the display')
 
     T = TypeVar('T', bound = 'StoneWidget')
-    def widget(self, key:Tuple[str, Type[T]]) -> T:
+    def __getitem__(self, key:Tuple[str, Type[T]]) -> T:
         widget_name, widget_type = key
         widget = self.find_by_name(widget_name)
         if isinstance(widget, widget_type):

@@ -1,7 +1,22 @@
-from typing import Tuple, MutableSequence, MutableMapping, Union, Optional, TYPE_CHECKING
+from typing import (
+    Deque,
+    Tuple,
+    MutableSequence,
+    MutableMapping,
+    Callable,
+    Union,
+    Optional,
+    TYPE_CHECKING,
+)
 
 if TYPE_CHECKING:
-    from . import CommandValue, StoneCommandType, StoneWidgetCommandType, StoneCommand
+    from . import (
+        CommandValue,
+        StoneCommandType,
+        StoneCommand,
+        StoneResponseType,
+        StoneResponse,
+    )
 
 class StoneWidget:
     """
@@ -26,7 +41,9 @@ class StoneWidget:
         # "queue" of commands to be sent by the application, only one command per command type is permitted, 
         # to prevent writing the same command multiple times
         self.command_queue:MutableMapping[str, 'StoneCommand'] = {}
-
+        # handler functions for responses from the display
+        # mapped cmd_code --to-> handler function
+        self.response_handlers:MutableMapping[int, Callable[..., None]] = {}
 
         #* general commands
         # enabled
@@ -39,13 +56,15 @@ class StoneWidget:
         self._x = -1
         self._y = -1
         self.set_xy = StoneWidgetCommandType('set_xy', StoneWidget)
-        # self.get_xy = StoneWidgetCommandType(StoneWidget, 'get_xy')
 
         #* hierarchy
         self.children:MutableSequence[StoneWidget] = []
         self.parent = parent
         if parent:
             parent.add_child(self)
+
+    def add_response_handler(self, response:'StoneResponseType', func:Callable[..., None]) -> None:
+        self.response_handlers[response.cmd_code] = func
 
     def add_child(self, child:'StoneWidget') -> None:
         self.children.append(child)
@@ -75,6 +94,11 @@ class StoneWidget:
         # ensure only one command with the same name can be in the queue
         # this throws away the old command if not yet sent
         self.command_queue[command.cmd_code] = command
+
+    def handle_response(self, response:'StoneResponse') -> None:
+        if response.cmd_code not in self.response_handlers:
+            return
+        self.response_handlers[response.cmd_code](**response.cmd_data)
 
     @property
     def has_commands(self) -> bool:
