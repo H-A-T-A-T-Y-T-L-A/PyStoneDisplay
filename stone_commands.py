@@ -1,5 +1,6 @@
-from typing import Iterable, Tuple, Callable, MutableSequence, MutableMapping, Optional, Union, Type, TYPE_CHECKING
+from typing import Deque, Iterable, Tuple, Callable, MutableSequence, MutableMapping, Optional, Union, Type, TYPE_CHECKING
 from enum import Enum
+from collections import deque
 import json
 
 if TYPE_CHECKING:
@@ -8,6 +9,8 @@ if TYPE_CHECKING:
 # types of values allowed in a command
 CommandPrimitiveValue = Union[str, int, float, bool, Enum]
 CommandValue = Union[CommandPrimitiveValue, Iterable[CommandPrimitiveValue]]
+message_start = 'ST<'
+message_end = '>ET'
 
 #!#########################!#
 #!         COMMAND         !#
@@ -120,7 +123,7 @@ class StoneCommand:
             **self.body,
             **self.cmd_items
         })
-        result = f'ST<{body}>ET'
+        result = f'{message_start}{body}{message_end}'
         return result
 
     def __repr__(self) -> str:
@@ -142,6 +145,34 @@ class StoneWidgetCommand(StoneCommand):
 #!##########################!#
 #!         RESPONSE         !#
 #!##########################!#
+
+class StoneResponseMatcher:
+
+    def __init__(self) -> None:
+        self.buffer:Deque[int] = deque()
+        self.buffering = False
+        self.queue:Deque[bytes] = deque()
+
+    def push(self, data:bytes) -> None:
+        for byte in data:
+            self.process_byte(byte)
+
+    def get(self) -> Iterable[bytes]:
+        while len(self.queue) > 0:
+            yield self.queue.popleft()
+
+    @property
+    def buffered_str(self) -> str:
+        return ''.join(chr(byte) for byte in self.buffer)
+
+    def process_byte(self, byte:int) -> None:
+        self.buffer.append(byte)
+        if self.buffering and self.buffered_str.endswith(message_end):
+            self.queue.append(bytes(self.buffer)[:-len(message_end)])
+            self.buffering = False
+        if self.buffered_str.endswith(message_start):
+            self.buffer.clear()
+            self.buffering = True
 
 class StoneResponseType:
 
