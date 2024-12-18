@@ -123,7 +123,7 @@ class StoneDisplay:
                 packet = command.serialized.encode('ASCII')
                 ser.write(packet)
 
-    def read_commands(self) -> None:
+    def read_responses(self) -> None:
         from . import StoneResponseType, StoneWidgetResponse
         with self.serial as ser:
             read_result = ser.read_all()
@@ -153,7 +153,7 @@ class StoneDisplay:
     def beep(self, time = 100) -> None:
         self.home_window.push_command(self.set_buzzer, time = time)
 
-    def conn_test(self, timeout_s:float = 5.) -> None:
+    def ping(self, timeout_s:float = 5.) -> None:
         self.home_window.push_command(self.sys_hello)
 
     @property
