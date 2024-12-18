@@ -36,7 +36,8 @@ class StoneDisplay:
         self.bytesize = 8
         self.parity = 'N'
         self.stopbits = 1
-        self.serial_timeout:Optional[float] = None
+        self.serial_timeout = .0
+        self.serial:Optional[serial.Serial] = None
 
         #! response handling
         self.response_buffer = StoneResponseBuffer()
@@ -68,14 +69,25 @@ class StoneDisplay:
         bytesize:Optional[int] = None,
         parity:Optional[str] = None,
         stopbits:Optional[int] = None,
-        serial_timeout:Optional[float] = None,
+        timeout:Optional[float] = None,
     ):
         if port is not None: self.port = port
         if baudrate is not None: self.baudrate = baudrate
         if bytesize is not None: self.bytesize = bytesize
         if parity is not None: self.parity = parity
         if stopbits is not None: self.stopbits = stopbits
-        if serial_timeout is not None: self.serial_timeout = serial_timeout
+        if timeout is not None: self.serial_timeout = timeout
+        if self.serial:
+            self.serial.close()
+        self.serial = serial.Serial(
+            self.port,
+            self.baudrate,
+            self.bytesize,
+            self.parity,
+            self.stopbits,
+            self.serial_timeout,
+        )
+        self.serial.open()
 
     @property
     def home_window(self) -> 'StoneWindow':
@@ -106,29 +118,20 @@ class StoneDisplay:
         new_window = StoneWindow(name)
         return new_window
 
-    @property
-    def serial(self) -> serial.Serial:
-        return serial.Serial(
-            self.port,
-            self.baudrate,
-            self.bytesize,
-            self.parity,
-            self.stopbits,
-            self.serial_timeout,
-        )
-
     def write_commands(self) -> None:
-        with self.serial as ser:
-            for command in self.gather_commands():
-                packet = command.serialized.encode('ASCII')
-                ser.write(packet)
+        if not self.serial:
+            return
+        for command in self.gather_commands():
+            packet = command.serialized.encode('ASCII')
+            self.serial.write(packet)
 
     def read_responses(self) -> None:
         from . import StoneResponseType, StoneWidgetResponse
-        with self.serial as ser:
-            read_result = ser.read_all()
-            if read_result:
-                self.response_buffer.push(read_result)
+        if not self.serial:
+            return
+        read_result = self.serial.read_all()
+        if read_result:
+            self.response_buffer.push(read_result)
         for packet in self.response_buffer:
             response = StoneResponseType.decode(packet)
             if isinstance(response, StoneWidgetResponse):
