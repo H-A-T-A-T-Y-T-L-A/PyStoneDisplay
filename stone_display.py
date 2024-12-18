@@ -87,7 +87,6 @@ class StoneDisplay:
             self.stopbits,
             self.serial_timeout,
         )
-        self.serial.open()
 
     @property
     def home_window(self) -> 'StoneWindow':
@@ -121,6 +120,8 @@ class StoneDisplay:
     def write_commands(self) -> None:
         if not self.serial:
             return
+        if not self.serial.is_open:
+            self.serial.open()
         for command in self.gather_commands():
             packet = command.serialized.encode('ASCII')
             self.serial.write(packet)
@@ -129,6 +130,8 @@ class StoneDisplay:
         from . import StoneResponseType, StoneWidgetResponse
         if not self.serial:
             return
+        if not self.serial.is_open:
+            self.serial.open()
         read_result = self.serial.read_all()
         if read_result:
             self.response_buffer.push(read_result)
