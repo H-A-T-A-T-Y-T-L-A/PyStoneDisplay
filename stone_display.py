@@ -19,7 +19,6 @@ if TYPE_CHECKING:
         StoneWidget,
         StoneWindow,
         StoneCommand,
-        StoneCommandType,
         StoneResponseMatcher,
         StoneResponseType,
     )
@@ -27,12 +26,12 @@ if TYPE_CHECKING:
 class StoneDisplay:
 
     def __init__(self) -> None:
-        from . import StoneWindow
-        # children
+        from . import StoneWindow, StoneCommandType, StoneResponseType
+        #! children
         self._home_window = StoneWindow('home_page')
         self.windows:MutableSequence[StoneWindow] = [ self.home_window ]
 
-        # serial port config
+        #! serial port config
         self.port = ''
         self.baudrate = 9600
         self.bytesize = 8
@@ -40,21 +39,28 @@ class StoneDisplay:
         self.stopbits = 1
         self.serial_timeout:Optional[float] = None
 
-        # response handling
+        #! response handling
         self.response_buffer = StoneResponseMatcher()
-        self.home_window.add_response_handler(self.sys_hello_response, self._set_connected)
 
-        # system commands
+        # ping (hello) response
+        if not StoneDisplay.sys_hello_response: 
+            StoneDisplay.sys_hello_response = StoneResponseType(0x0001, lambda data: {'connected': data == b'\x01'})
+        self.home_window.add_response_handler(StoneDisplay.sys_hello_response, self._set_connected)
+
+        #! system commands
         self.set_buzzer = StoneCommandType('set_buzzer')
         self._brightness = 100
         self.set_brightness = StoneCommandType('set_brightness')
         self.sys_hello = StoneCommandType('sys_hello')
 
-        # status
+        #! status
         self._connected = False
         self.connection_test_timeout_time:Optional[datetime] = None
 
-    sys_hello_response = StoneResponseType(0x0001, lambda data: {'connected': data == b'\x01'})
+    # response types should be class variables,
+    # but to avoid import conflicts, lazy loading is prefered
+    # (create the instance in the init function, but only the first time)
+    sys_hello_response:Optional[StoneResponseType] = None
 
     def config_serial(
         self,
