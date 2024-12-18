@@ -19,14 +19,13 @@ if TYPE_CHECKING:
         StoneWidget,
         StoneWindow,
         StoneCommand,
-        StoneResponseMatcher,
         StoneResponseType,
     )
 
 class StoneDisplay:
 
     def __init__(self) -> None:
-        from . import StoneWindow, StoneCommandType, StoneResponseType
+        from . import StoneWindow, StoneCommandType, StoneResponseType, StoneResponseBuffer
         #! children
         self._home_window = StoneWindow('home_page')
         self.windows:MutableSequence[StoneWindow] = [ self.home_window ]
@@ -40,7 +39,7 @@ class StoneDisplay:
         self.serial_timeout:Optional[float] = None
 
         #! response handling
-        self.response_buffer = StoneResponseMatcher()
+        self.response_buffer = StoneResponseBuffer()
 
         # ping (hello) response
         if not StoneDisplay.sys_hello_response: 

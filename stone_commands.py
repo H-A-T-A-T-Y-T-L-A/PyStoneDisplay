@@ -146,7 +146,7 @@ class StoneWidgetCommand(StoneCommand):
 #!         RESPONSE         !#
 #!##########################!#
 
-class StoneResponseMatcher:
+class StoneResponseBuffer:
 
     def __init__(self) -> None:
         self.buffer:Deque[int] = deque()
