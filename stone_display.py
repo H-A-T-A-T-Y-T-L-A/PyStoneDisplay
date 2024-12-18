@@ -57,10 +57,10 @@ class StoneDisplay:
         self._connected = False
         self.connection_test_timeout_time:Optional[datetime] = None
 
-    # response types should be class variables,
+    # response types should be class variables, to be shared between instances,
     # but to avoid import conflicts, lazy loading is prefered
     # (create the instance in the init function, but only the first time)
-    sys_hello_response:Optional[StoneResponseType] = None
+    sys_hello_response:Optional['StoneResponseType'] = None
 
     def config_serial(
         self,
