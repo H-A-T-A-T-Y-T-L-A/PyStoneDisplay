@@ -2,6 +2,7 @@ from typing import (
     Deque,
     Tuple,
     MutableSequence,
+    MutableMapping,
     Iterable,
     Optional,
     Union,
@@ -10,6 +11,7 @@ from typing import (
     TYPE_CHECKING
 )
 from collections import deque
+from datetime import datetime, timedelta
 import serial
 
 if TYPE_CHECKING:
@@ -19,8 +21,7 @@ if TYPE_CHECKING:
         StoneCommand,
         StoneCommandType,
         StoneResponseMatcher,
-        StoneResponse,
-        StoneWidgetResponse,
+        StoneResponseType,
     )
 
 class StoneDisplay:
@@ -28,7 +29,7 @@ class StoneDisplay:
     def __init__(self) -> None:
         from . import StoneWindow
         # children
-        self.home_window = StoneWindow('home_page')
+        self._home_window = StoneWindow('home_page')
         self.windows:MutableSequence[StoneWindow] = [ self.home_window ]
 
         # serial port config
@@ -41,11 +42,19 @@ class StoneDisplay:
 
         # response handling
         self.response_buffer = StoneResponseMatcher()
+        self.home_window.add_response_handler(self.sys_hello_response, self._set_connected)
 
         # system commands
         self.set_buzzer = StoneCommandType('set_buzzer')
         self._brightness = 100
         self.set_brightness = StoneCommandType('set_brightness')
+        self.sys_hello = StoneCommandType('sys_hello')
+
+        # status
+        self._connected = False
+        self.connection_test_timeout_time:Optional[datetime] = None
+
+    sys_hello_response = StoneResponseType(0x0001, lambda data: {'connected': data == b'\x01'})
 
     def config_serial(
         self,
@@ -62,6 +71,17 @@ class StoneDisplay:
         if parity is not None: self.parity = parity
         if stopbits is not None: self.stopbits = stopbits
         if serial_timeout is not None: self.serial_timeout = serial_timeout
+
+    @property
+    def home_window(self) -> 'StoneWindow':
+        return self._home_window
+
+    @property
+    def connected(self) -> bool:
+        return self._connected
+
+    def _set_connected(self, connected:bool) -> None:
+        self._connected = connected
 
     @property
     def all_widgets(self) -> Iterable['StoneWidget']:
@@ -127,6 +147,9 @@ class StoneDisplay:
 
     def beep(self, time = 100) -> None:
         self.home_window.push_command(self.set_buzzer, time = time)
+
+    def conn_test(self, timeout_s:float = 5.) -> None:
+        self.home_window.push_command(self.sys_hello)
 
     @property
     def brightness(self) -> int:
