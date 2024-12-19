@@ -195,15 +195,18 @@ class StoneResponseType:
         self.existing_types[self.cmd_code] = self
 
     @staticmethod
-    def decode(raw:bytes) -> 'StoneResponse':
+    def decode(raw:bytes) -> Optional['StoneResponse']:
         cmd_code = int.from_bytes(raw[0:2], 'big')
         cmd_len = int.from_bytes(raw[2:4], 'big')
         raw_data = raw[4:]
         if len(raw_data) != cmd_len:
             raise ValueError(f'True length of data ({len(raw_data)}) did not match the defined length ({cmd_len})')
-        response_type = StoneResponseType.existing_types[cmd_code]
-        return response_type.new(raw_data)
-        
+        try:
+            response_type = StoneResponseType.existing_types[cmd_code]
+            return response_type.new(raw_data)
+        except KeyError:
+            return None
+
     def new(self, raw_data:bytes) -> 'StoneResponse':
         return StoneResponse(self.cmd_code, self.parser(raw_data))
 

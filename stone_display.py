@@ -132,7 +132,7 @@ class StoneDisplay:
             self.serial.write(packet)
 
     def read_responses(self) -> None:
-        from . import StoneResponseType, StoneWidgetResponse
+        from . import StoneResponseType, StoneWidgetResponse, StoneResponse
         if not self.serial:
             return
         if not self.serial.is_open:
@@ -144,7 +144,7 @@ class StoneDisplay:
             response = StoneResponseType.decode(packet)
             if isinstance(response, StoneWidgetResponse):
                 self.find_by_name(response.widget_name).handle_response(response)
-            else:
+            elif isinstance(response, StoneResponse):
                 self.home_window.handle_response(response)
 
     def find_by_name(self, key:str) -> 'StoneWidget':
