@@ -140,7 +140,7 @@ class StoneDisplay:
         read_result = self.serial.read_all()
         if read_result:
             self.response_buffer.push(read_result)
-        for packet in self.response_buffer:
+        while packet := self.response_buffer.pop():
             response = StoneResponseType.decode(packet)
             if isinstance(response, StoneWidgetResponse):
                 self.find_by_name(response.widget_name).handle_response(response)

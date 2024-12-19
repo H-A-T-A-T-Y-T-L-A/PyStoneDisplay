@@ -157,9 +157,14 @@ class StoneResponseBuffer:
         for byte in data:
             self.process_byte(byte)
 
-    def get(self) -> Iterable[bytes]:
-        while len(self.queue) > 0:
-            yield self.queue.popleft()
+    def pop(self) -> Optional[bytes]:
+        if len(self.queue) > 0:
+            return self.queue.popleft()
+        return None
+
+    @property
+    def empty(self) -> bool:
+        return len(self.queue) == 0
 
     @property
     def buffered_str(self) -> str:
@@ -173,9 +178,6 @@ class StoneResponseBuffer:
         if self.buffered_str.endswith(message_start):
             self.buffer.clear()
             self.buffering = True
-
-    def __iter__(self) -> Iterator[bytes]:
-        return iter(self.queue)
 
 class StoneResponseType:
 
