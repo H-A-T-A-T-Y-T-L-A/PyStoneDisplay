@@ -46,16 +46,14 @@ class StoneDisplay:
         if not StoneDisplay.sys_hello_response: 
             StoneDisplay.sys_hello_response = StoneResponseType(0x0001, lambda data: {'connected': data == b'\x01'})
         self.home_window.add_response_handler(StoneDisplay.sys_hello_response, self._set_connected)
+        self._connected = False
+        self.ping_timeout_time:Optional[datetime] = None
 
         #! system commands
         self.set_buzzer = StoneCommandType('set_buzzer')
         self._brightness = 100
         self.set_brightness = StoneCommandType('set_brightness')
         self.sys_hello = StoneCommandType('sys_hello')
-
-        #! status
-        self._connected = False
-        self.connection_test_timeout_time:Optional[datetime] = None
 
     # response types should be class variables, to be shared between instances,
     # but to avoid import conflicts, lazy loading is prefered
@@ -94,6 +92,8 @@ class StoneDisplay:
 
     @property
     def connected(self) -> bool:
+        if self.ping_timeout_time is not None and datetime.now() < self.ping_timeout_time:
+            self._set_connected(False)
         return self._connected
 
     def _set_connected(self, connected:bool) -> None:
@@ -161,6 +161,9 @@ class StoneDisplay:
 
     def ping(self, timeout_s:float = 5.) -> None:
         self.home_window.push_command(self.sys_hello)
+        if self.ping_timeout_time is not None and datetime.now() < self.ping_timeout_time:
+            self._set_connected(False)
+        self.ping_timeout_time = datetime.now() + timedelta(seconds = timeout_s)
 
     @property
     def brightness(self) -> int:
