@@ -92,9 +92,13 @@ class StoneDisplay:
 
     @property
     def connected(self) -> bool:
-        if self.ping_timeout_time is not None and datetime.now() < self.ping_timeout_time:
+        if self._is_timed_out:
             self._set_connected(False)
         return self._connected
+
+    @property
+    def _is_timed_out(self) -> bool:
+        return self.ping_timeout_time is not None and datetime.now() >= self.ping_timeout_time
 
     def _set_connected(self, connected:bool) -> None:
         self._connected = connected
@@ -161,7 +165,7 @@ class StoneDisplay:
 
     def ping(self, timeout_s:float = 5.) -> None:
         self.home_window.push_command(self.sys_hello)
-        if self.ping_timeout_time is not None and datetime.now() < self.ping_timeout_time:
+        if self._is_timed_out:
             self._set_connected(False)
         self.ping_timeout_time = datetime.now() + timedelta(seconds = timeout_s)
 
