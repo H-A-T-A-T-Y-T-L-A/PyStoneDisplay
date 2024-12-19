@@ -92,8 +92,11 @@ class StoneDisplay:
 
     @property
     def connected(self) -> bool:
+        # to make sure that old information is not returned,
+        # and that timeout is applied even if ping is not called again
         if self._is_timed_out:
             self._set_connected(False)
+        # return current state
         return self._connected
 
     @property
@@ -164,10 +167,11 @@ class StoneDisplay:
     def beep(self, time = 100) -> None:
         self.home_window.push_command(self.set_buzzer, time = time)
 
-    def ping(self, timeout_s:float = 5.) -> None:
+    def ping(self, timeout_s:float = 3.) -> None:
         if self.ping_timeout_time is None:
             self.home_window.push_command(self.sys_hello)
             self.ping_timeout_time = datetime.now() + timedelta(seconds = timeout_s)
+        # to allow another ping immediately if the current one times out
         elif self._is_timed_out:
             self._set_connected(False)
 
@@ -179,4 +183,5 @@ class StoneDisplay:
     def brightness(self, value:int) -> None:
         if value > 100 or value < 0:
             raise ValueError(f'Cannot set brightness level outside of interval <0, 100> (tried value {value})')
-        self.home_window.push_command(self.set_brightness, brightness = value)
+        self._brightness = value
+        self.home_window.push_command(self.set_brightness, brightness = self._brightness)
