@@ -59,9 +59,17 @@ class StoneWidget:
 
         #* hierarchy
         self.children:MutableSequence[StoneWidget] = []
-        self.parent = parent
+        self._parent = parent
         if parent:
             parent.add_child(self)
+
+    @property
+    def name(self) -> str:
+        return self.instance_name
+
+    @property
+    def parent(self) -> Optional['StoneWidget']:
+        return self._parent
 
     def add_response_handler(self, response:'StoneResponseType', func:Callable[..., None]) -> None:
         self.response_handlers[response.cmd_code] = func
