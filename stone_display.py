@@ -123,6 +123,7 @@ class StoneDisplay:
     def add_window(self, name:str) -> 'StoneWindow':
         from . import StoneWindow
         new_window = StoneWindow(name)
+        self.windows.append(new_window)
         return new_window
 
     def write_commands(self) -> None:
