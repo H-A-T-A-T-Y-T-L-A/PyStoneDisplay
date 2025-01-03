@@ -1,3 +1,4 @@
+from typing import Optional
 from . import StoneWidget, StoneCommandType, StoneWidgetCommandType
 
 class StoneWindow(StoneWidget):
@@ -5,8 +6,8 @@ class StoneWindow(StoneWidget):
     type_name = 'window'
     back_win = StoneCommandType('back_win', type_name)
 
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
+    def __init__(self, name: str, parent:Optional[StoneWidget] = None) -> None:
+        super().__init__(name, parent)
 
         self.open_win = StoneWidgetCommandType('open_win', StoneWidget)
         self.close_win = StoneWidgetCommandType('close_win', StoneWidget)
