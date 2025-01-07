@@ -3,7 +3,7 @@ from . import StoneWidget, StoneWidgetCommandType
 
 # this widget is purely virtual, does not exist on the display
 # only as an abstraction of multiple overlayed widgets
-class StoneMultipleView(StoneWidget):
+class StoneViewSwitch(StoneWidget):
 
     def __init__(self, name:str, parent:Optional[StoneWidget] = None) -> None:
         super().__init__(name, parent)
