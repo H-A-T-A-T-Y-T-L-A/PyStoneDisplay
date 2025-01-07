@@ -8,7 +8,7 @@ class StoneSlideViewPage(StoneWidget):
 
 class StoneSlideView(StoneWidget):
 
-    type_name = 'label'
+    type_name = 'slide_view'
 
     def __init__(self, name:str, parent:Optional[StoneWidget] = None) -> None:
         super().__init__(name, parent)
