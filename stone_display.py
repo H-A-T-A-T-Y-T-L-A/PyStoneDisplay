@@ -132,7 +132,7 @@ class StoneDisplay:
         if not self.serial.is_open:
             self.serial.open()
         for command in self.gather_commands():
-            packet = command.serialized.encode('ASCII')
+            packet = command.serialized.encode('UTF-8')
             self.serial.write(packet)
 
     def read_responses(self) -> None:

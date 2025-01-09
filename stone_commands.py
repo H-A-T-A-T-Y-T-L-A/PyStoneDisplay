@@ -122,7 +122,7 @@ class StoneCommand:
         body = json.dumps({
             **self.body,
             **self.cmd_items
-        })
+        }, ensure_ascii = False)
         result = f'{message_start}{body}{message_end}'
         return result
 
