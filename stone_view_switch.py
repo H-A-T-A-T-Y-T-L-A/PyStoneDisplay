@@ -24,12 +24,16 @@ class StoneViewSwitch(StoneWidget):
         self.refresh_views()
 
     @property
-    def current_view(self) -> StoneWidget:
+    def current_view(self) -> Optional[StoneWidget]:
+        if self.current_index >= len(self.children):
+            return None
         return self.children[self.current_index]
 
     @property
     def current_name(self) -> str:
-        return self.current_view.name
+        if self.current_view:
+            return self.current_view.name
+        return ''
 
     @current_name.setter
     def current_name(self, value:str) -> None:
