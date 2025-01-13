@@ -54,6 +54,7 @@ class StoneDisplay:
         self._brightness = 100
         self.set_brightness = StoneCommandType('set_brightness')
         self.sys_hello = StoneCommandType('sys_hello')
+        self.sys_reboot = StoneCommandType('sys_reboot')
 
     # response types should be class variables, to be shared between instances,
     # but to avoid import conflicts, lazy loading is prefered
@@ -85,6 +86,9 @@ class StoneDisplay:
             self.stopbits,
             self.serial_timeout,
         )
+
+    def reboot(self) -> None:
+        self.home_window.push_command(self.sys_reboot)
 
     @property
     def home_window(self) -> 'StoneWindow':
@@ -163,7 +167,7 @@ class StoneDisplay:
         widget = self.find_by_name(widget_name)
         if isinstance(widget, widget_type):
             return widget
-        raise KeyError(f'Widget of type "{widget_type.__name__}" with name "{key}" was not found on the display')
+        raise KeyError(f'Widget of type "{widget_type.__name__}" with name "{widget_name}" was not found on the display')
 
     def beep(self, time = 100) -> None:
         self.home_window.push_command(self.set_buzzer, time = time)
