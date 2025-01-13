@@ -5,6 +5,7 @@ class StoneWindow(StoneWidget):
 
     type_name = 'window'
     back_win = StoneCommandType('back_win', type_name)
+    _current_win:Optional['StoneWindow'] = None
 
     def __init__(self, name: str, parent:Optional[StoneWidget] = None) -> None:
         super().__init__(name, parent)
@@ -17,7 +18,13 @@ class StoneWindow(StoneWidget):
         """
         Open the window, even if it is running in the background.
         """
+        self.visible = True
         self.push_command(self.open_win)
+        StoneWindow._current_win = self
+
+    @property
+    def current_win(self) -> Optional['StoneWindow']:
+        return StoneWindow._current_win
 
     def close(self) -> None:
         """
