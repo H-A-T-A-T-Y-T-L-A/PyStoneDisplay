@@ -64,6 +64,18 @@ class StoneWidget:
             parent.add_child(self)
 
     @property
+    def is_displayed(self) -> bool:
+        if not self.visible:
+            return False
+        if self.parent and not self.parent.is_displayed:
+            return False
+        return True
+
+    def invalidate(self) -> None:
+        for child in self.children:
+            child.invalidate()
+
+    @property
     def name(self) -> str:
         return self.instance_name
 

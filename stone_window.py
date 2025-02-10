@@ -14,6 +14,12 @@ class StoneWindow(StoneWidget):
         self.close_win = StoneWidgetCommandType('close_win', StoneWidget)
         self.back_win_to = StoneWidgetCommandType('back_win_to', StoneWidget)
 
+    @property
+    def is_displayed(self) -> bool:
+        if not super().is_displayed:
+            return False
+        return self.current_win is self
+
     def open(self) -> None:
         """
         Open the window, even if it is running in the background.
@@ -21,6 +27,7 @@ class StoneWindow(StoneWidget):
         self.visible = True
         self.push_command(self.open_win)
         StoneWindow._current_win = self
+        self.invalidate()
 
     @property
     def current_win(self) -> Optional['StoneWindow']:

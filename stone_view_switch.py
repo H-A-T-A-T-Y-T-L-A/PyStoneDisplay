@@ -44,3 +44,8 @@ class StoneViewSwitch(StoneWidget):
     def refresh_views(self) -> None:
         for view in self.children:
             view.visible = view is self.current_view
+        self.invalidate()
+
+    def invalidate(self) -> None:
+        if self.current_view:
+            self.current_view.invalidate()

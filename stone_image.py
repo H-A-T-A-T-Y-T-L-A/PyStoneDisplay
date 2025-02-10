@@ -24,6 +24,7 @@ class StoneImage(StoneWidget):
         super().__init__(name, parent)
 
         self._image = ''
+        self._set_image = ''
         self.set_image = StoneWidgetCommandType('set_image', StoneImage)
         self._draw_type = StoneImage.DrawType.DEFAULT
         self.set_draw_type = StoneWidgetCommandType('set_draw_type', StoneImage)
@@ -34,8 +35,15 @@ class StoneImage(StoneWidget):
 
     @image.setter
     def image(self, value:str) -> None:
-        self._image = value
-        self.push_command(self.set_image, image = self._image)
+        self._set_image = value
+        if self.is_displayed:
+            self.invalidate()
+
+    def invalidate(self) -> None:
+        super().invalidate()
+        if self._image != self._set_image:
+            self._image = self._set_image
+            self.push_command(self.set_image, image = self._image)
 
     @property
     def draw_type(self) -> DrawType:
