@@ -105,7 +105,10 @@ class StoneDisplay:
 
     @property
     def _is_timed_out(self) -> bool:
-        return self.ping_timeout_time is not None and datetime.now() >= self.ping_timeout_time
+        try:
+            return self.ping_timeout_time is not None and datetime.now() >= self.ping_timeout_time
+        except:
+            return False
 
     def _set_connected(self, connected:bool) -> None:
         self.ping_timeout_time = None
