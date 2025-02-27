@@ -136,27 +136,33 @@ class StoneDisplay:
     def write_commands(self) -> None:
         if not self.serial:
             return
-        if not self.serial.is_open:
-            self.serial.open()
-        for command in self.gather_commands():
-            packet = command.serialized.encode('UTF-8')
-            self.serial.write(packet)
+        try:
+            if not self.serial.is_open:
+                self.serial.open()
+            for command in self.gather_commands():
+                packet = command.serialized.encode('UTF-8')
+                self.serial.write(packet)
+        except:
+            self.serial.close()
 
     def read_responses(self) -> None:
         from . import StoneResponseType, StoneWidgetResponse, StoneResponse
         if not self.serial:
             return
-        if not self.serial.is_open:
-            self.serial.open()
-        read_result = self.serial.read_all()
-        if read_result:
-            self.response_buffer.push(read_result)
-        while packet := self.response_buffer.pop():
-            response = StoneResponseType.decode(packet)
-            if isinstance(response, StoneWidgetResponse):
-                self.find_by_name(response.widget_name).handle_response(response)
-            elif isinstance(response, StoneResponse):
-                self.home_window.handle_response(response)
+        try:
+            if not self.serial.is_open:
+                self.serial.open()
+            read_result = self.serial.read_all()
+            if read_result:
+                self.response_buffer.push(read_result)
+            while packet := self.response_buffer.pop():
+                response = StoneResponseType.decode(packet)
+                if isinstance(response, StoneWidgetResponse):
+                    self.find_by_name(response.widget_name).handle_response(response)
+                elif isinstance(response, StoneResponse):
+                    self.home_window.handle_response(response)
+        except:
+            self.serial.close()
 
     def find_by_name(self, key:str) -> 'StoneWidget':
         for widget in self.all_widgets:
