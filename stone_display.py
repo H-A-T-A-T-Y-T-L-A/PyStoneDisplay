@@ -13,6 +13,7 @@ from typing import (
 from collections import deque
 from datetime import datetime, timedelta
 import serial
+from WatteeSmartSystem.Modules import utils
 
 if TYPE_CHECKING:
     from . import (
@@ -143,7 +144,7 @@ class StoneDisplay:
                 packet = command.serialized.encode('UTF-8')
                 self.serial.write(packet)
         except:
-            self.serial.close()
+            utils.reboot()
 
     def read_responses(self) -> None:
         from . import StoneResponseType, StoneWidgetResponse, StoneResponse
