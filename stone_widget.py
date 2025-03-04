@@ -9,6 +9,8 @@ from typing import (
     TYPE_CHECKING,
 )
 
+from charging_session.charging_session import PortAvailability
+
 if TYPE_CHECKING:
     from . import (
         CommandValue,
@@ -56,6 +58,9 @@ class StoneWidget:
         self._x = -1
         self._y = -1
         self.set_xy = StoneWidgetCommandType('set_xy', StoneWidget)
+        # background image
+        self._bg_image:Optional[str] = None
+        self.set_bg_image = StoneWidgetCommandType('set_bg_image', StoneWidget)
 
         #* hierarchy
         self.children:MutableSequence[StoneWidget] = []
@@ -157,3 +162,12 @@ class StoneWidget:
     def xy(self, value:Tuple[int, int]) -> None:
         self._x, self._y = value
         self.push_command(self.set_xy, x = self._x, y = self._y)
+
+    @property
+    def bg_image(self) -> Optional[str]:
+        return self._bg_image
+
+    @bg_image.setter
+    def bg_image(self, value:Optional[str]) -> None:
+        self._bg_image = value
+        self.push_command(self.set_bg_image, bg_image = value if value else '')
